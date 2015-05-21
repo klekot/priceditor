@@ -10,32 +10,32 @@ import tkFileDialog
 import sys
 from codecs import *
 import webbrowser
-from PIL import ImageTk
+import ImageTk
 import PIL.Image
 import requests
 from StringIO import StringIO
 
 #################################################### now let's plug my own modules ####################################################
-import AutocompleteEntry #it's taken from internet with my "light" edition...
-from tree_cats import *
-from html_show import *
-from item_path_show import *
-from show_empty import *
-from show_open_item import *
-from list_to_search import *
-from loading_arrs import *
-from full_path_show import *
-from autofill_names import *
-from menu_point import *
-from items import *
-from level_1_items import *
-from level_2_items import *
-from level_3_items import *
-from categories import *
-from back_show import *
-from search import *
-from page_design import *
-from show_info import *
+from modules import AutocompleteEntry
+from modules.tree_cats import *
+from modules.html_show import *
+from modules.item_path_show import *
+from modules.show_empty import *
+from modules.show_open_item import *
+from modules.list_to_search import *
+from modules.loading_arrs import *
+from modules.full_path_show import *
+from modules.autofill_names import *
+from modules.menu_point import *
+from modules.items import *
+from modules.level_1_items import *
+from modules.level_2_items import *
+from modules.level_3_items import *
+from modules.categories import *
+from modules.back_show import *
+from modules.search import *
+from modules.page_design import *
+from modules.show_info import *
 
 ####################################################### Inner functions definitions ###################################################
 def apply_design():
@@ -178,6 +178,8 @@ def info():
 
 def OpenProg():
     global frame0
+    global level_0
+    global e
 
     def entry_return(event):
         global query
@@ -464,6 +466,12 @@ if __name__ == '__main__':
     v              = StringVar()
     full_path      = StringVar()
     sw             = 1
+    
+    hostname   = 'localhost'
+    database   = 'poliinfo_bitrix'
+    db_user    = 'poliinfo_bitrix'
+    db_pass    = 'Y2Gd75q'
+    db_request = "select `NAME` from `b_iblock_element` where `id`=89631"
 
     root.resizable(0,0)
     root.title("Price Editor 1.6")
