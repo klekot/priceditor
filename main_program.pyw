@@ -18,6 +18,7 @@ from StringIO import StringIO
 
 #################################################### now let's plug my own modules ####################################################
 from modules import AutocompleteEntry
+from modules import DB_Object
 from modules.tree_cats import *
 from modules.html_show import *
 from modules.item_path_show import *
@@ -37,6 +38,7 @@ from modules.back_show import *
 from modules.search import *
 from modules.page_design import *
 from modules.show_info import *
+from modules.db_settings import *
 
 ####################################################### Inner functions definitions ###################################################
 def apply_design():
@@ -177,11 +179,14 @@ def SaveFile():
 def info():
     show_info(info_txt)
 
+def db_set_window():
+    db_settings(db_ini_file)
+
 def OpenProg():
     global frame0
     global level_0
     global e
-
+    
     def entry_return(event):
         global query
         search(e, v, names_col, all_cats, full_path, frame0, img_source_entry, textbox, params_col, img_col, pdf_source_entry, pdf_col, \
@@ -231,6 +236,24 @@ def OpenProg():
             textbox_t.delete(1.0, END)
             textbox_t.insert(END, template_text)
 
+    def save_db():
+        item_name = e.get()
+        for i,item in enumerate(names_col):
+            if item == item_name:
+                new_text = explain_col[i]
+        db_request = "update `b_iblock_element` set `DETAIL_TEXT`='%s' where `NAME`='%s'" % (new_text, item_name)
+        db = DB_Object.DB_Object(hostname, database, db_user, db_pass)
+        db.write(db_request)
+        load_template()
+        apply_design()
+        for i,item in enumerate(names_col):
+            if item == query:
+                html_show(explain_col[i])        
+        #print item_name
+        #print new_text
+        #db_request = "select `DETAIL_TEXT` from `b_iblock_element` where `NAME`='%s'" % (item_name)
+        #print db.write(db_request)
+
     def save_changes():
         query = e.get()
         for i,item in enumerate(names_col):
@@ -250,6 +273,8 @@ def OpenProg():
         for i,item in enumerate(names_col):
             if item == query:
                 html_show(explain_col[i])
+        if ask_db.get() != 0:
+            save_db()
 
     def save_img():
         query = e.get()
@@ -285,7 +310,7 @@ def OpenProg():
             if item == query:
                 schm2_col.pop(i)
                 schm2_col.insert(i, schm2_source_entry.get().encode('utf-8'))
-
+                
     ######################################################### GUI constraction ##################################################################
     frame0=Frame(frameZ, width=1260, heigh=770)
     frame1=Frame(frame0,width=430,heigh=640)
@@ -325,7 +350,7 @@ def OpenProg():
     viewer.add(view_1, text ='Специальное объявление')
 
     view_t = ttk.Frame(frame2)
-    viewer.add(view_t, text ='Редактировать шаблон')
+    viewer.add(view_t, text ='Общий шаблон')
 
     label_fill0 = Label(view_d, text="")
     label_fill0.pack()
@@ -414,12 +439,15 @@ def OpenProg():
     b.place(x=409, y=10)
     html_btn = Button(frame0, text="Вывести в браузер", command=lambda aurl=url:OpenUrl(aurl))
     html_btn.place(x=1010, y=700)
-    save_btn = Button(frame0, text="Сохранить изменения", command=save_changes)
-    save_btn.place(x=1132, y=700)
+    save_btn = Button(frame0, text=" Применить изменения  ", command=save_changes)
+    save_btn.place(x=1121, y=700)
     img_save_button = Button(frame0, text="Сохранить", command=save_img)
     img_save_button.place(x=825, y=640)
     pdf_save_button = Button(frame0, text="Сохранить", command=save_pdf)
-    pdf_save_button.place(x=1185, y=640)
+    pdf_save_button.place(x=1185, y=640)   
+    db_checkbtn = Checkbutton(frame0, text="Прямая запись в БД", variable=ask_db)
+    db_checkbtn.config(bg='yellow', fg='black')
+    db_checkbtn.place(x=1121, y=675)
 
     global fn
     global book
@@ -459,6 +487,7 @@ if __name__ == '__main__':
     all_cats       = [[],[],[],[],[]]
     url            = 'page.html'
     template_file  = 'template.html'
+    db_ini_file    = 'db.ini'
     img_directory  = 'http://poligon.info/images/'
     wall_pic       = 'priceditor_logo.jpg' # pic must have dimentions 1255 x 770 pixels
     info_txt       = 'info.txt'
@@ -467,15 +496,24 @@ if __name__ == '__main__':
     v              = StringVar()
     full_path      = StringVar()
     sw             = 1
-    
-    hostname   = 'localhost'
-    database   = 'poliinfo_bitrix'
-    db_user    = 'poliinfo_bitrix'
-    db_pass    = 'Y2Gd75q'
-    db_request = "select `NAME` from `b_iblock_element` where `id`=89631"
+    ask_db         = IntVar()
+    cur_db_var = StringVar()
+    hostname = ''
+    database = ''
+    db_user  = ''
+    db_pass  = ''
+
+
+    with open(db_ini_file, 'r') as db_ini:
+        db_set_arr = [s for s in db_ini.read().split('\n')]
+    hostname = db_set_arr[0]
+    database = db_set_arr[1]
+    db_user  = db_set_arr[2]
+    db_pass  = db_set_arr[3]
+
 
     root.resizable(0,0)
-    root.title("Price Editor 1.6")
+    root.title("Price Editor 1.7 alpha")
     frameZ=Frame(root, width=1260, heigh=770)
     frameZ.pack()
 
@@ -504,6 +542,7 @@ if __name__ == '__main__':
 
     settings_menu = Menu(menubar, tearoff=0)
     menubar.add_cascade(label="Настройки", menu=settings_menu)
+    settings_menu.add_command(label="Выбор БД...", command=db_set_window)
 
     about_menu = Menu(menubar, tearoff=0)
     menubar.add_cascade(label="Справка", menu=about_menu)
