@@ -66,7 +66,7 @@ def page_design(frameZ, pages, explain_col, names_col, short_col, img_col, pdf_c
 	sys.setdefaultencoding('utf8')
 	pages =  []
 
-	progress = ttk.Progressbar(frameZ, length=1242, maximum=len(params_col))
+	progress = ttk.Progressbar(frameZ, length=1235, maximum=len(params_col))
 	progress.place(x=10, y=740)
 	for i, item in enumerate(params_col):
 	        progress.step(1)
@@ -82,7 +82,7 @@ def page_design(frameZ, pages, explain_col, names_col, short_col, img_col, pdf_c
 		attention = encol(attention_col[i])
 		pages.append(template_fill(template_file, params, name, img, pdf, dim, schm1, schm2, short, attention))
 
-	progress = ttk.Progressbar(frameZ, length=1242, maximum=len(explain_col))
+	progress = ttk.Progressbar(frameZ, length=1235, maximum=len(explain_col))
 	progress.place(x=10, y=740)
 	for i, item in enumerate(explain_col):
 	        progress.step(1)

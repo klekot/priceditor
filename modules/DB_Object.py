@@ -16,7 +16,6 @@ class DB_Object():
         conn.close()
         return result
 
-
 if __name__ == '__main__':
     hostname   = 'localhost'
     database   = 'poliinfo_bitrix'

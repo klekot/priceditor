@@ -2,8 +2,8 @@ import xlrd
 import ttk
 
 def loading_arrs(sh, names_col, explain_col, all_cats, img_col, pdf_col, short_col, \
-                include_col, dim_col, schm1_col, schm2_col, attention_col, params_col, frameZ):
-    progress = ttk.Progressbar(frameZ, length=1242, maximum=sh.nrows)
+                include_col, dim_col, schm1_col, schm2_col, attention_col, params_col, vendor_col, frameZ):
+    progress = ttk.Progressbar(frameZ, length=1235, maximum=sh.nrows)
     progress.place(x=10, y=740)
     for i in range(sh.nrows):
         progress.step(1)
@@ -24,3 +24,4 @@ def loading_arrs(sh, names_col, explain_col, all_cats, img_col, pdf_col, short_c
         schm2_col.append(sh.cell_value(rowx=i, colx=116))
         attention_col.append(sh.cell_value(rowx=i, colx=99))
         params_col.append(sh.cell_value(rowx=i, colx=98))
+        vendor_col.append(sh.cell_value(rowx=i, colx=14))
