@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-from modules.html_show import *
+from html_show import *
 from Tkinter import *
 import ttk
-import ImageTk
-import Image
+from PIL import ImageTk
+from PIL import Image
+import PIL
 import requests
 from StringIO import StringIO
+from modules.short_to_ul import short_to_ul
 
 #  my class #
-from modules import Images
+import Images
+
 
 def resize(image, max_w, max_h):
     w = float(image.size[0])
@@ -22,16 +25,19 @@ def resize(image, max_w, max_h):
     new_h = int(h * ratio)
     return (new_w, new_h)
 
-def refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_source_entry, \
-            img_col, pdf_source_entry, pdf_col, attention_col, dim_col, schm1_col, schm2_col, \
-            dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture, \
-            view_d, view_s1, view_s2):
+
+def refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_source_entry,
+            img_col, pdf_source_entry, pdf_col, attention_col, dim_col, schm1_col, schm2_col,
+            dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture,
+            view_d, view_s1, view_s2, short_col, textbox_m):
     global image_dev
     global image_dim
     global image_schm1
     global image_schm2
     for i in range(len(names_col)):
         if names_col[i] == query:
+            textbox_m.delete(1.0, END)
+            textbox_m.insert(END, short_col[i])
             textbox.delete(1.0, END)
             textbox.insert(END, params_col[i])
             textbox_1.delete(1.0, END)
@@ -50,10 +56,10 @@ def refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_s
 
             i_dev = Images.Images(query, names_col, img_directory, img_col, dim_col, schm1_col, schm2_col)
             img_dev_path = i_dev.img_dev_path(query, names_col, img_directory, img_col)
-            try:
-                pilim_dev = Image.open(StringIO((requests.get(img_dev_path)).content))
-            except IOError as err:
-                print err
+            # try:
+            pilim_dev = PIL.Image.open(StringIO((requests.get(img_dev_path)).content))
+            # except IOError as err:
+            #     print err
             size_dev = resize(pilim_dev, 220, 220)
             pilim_dev.thumbnail(size_dev, Image.ANTIALIAS)
             image_dev = ImageTk.PhotoImage(pilim_dev)
@@ -64,9 +70,9 @@ def refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_s
             i_dim = Images.Images(query, names_col, img_directory, img_col, dim_col, schm1_col, schm2_col)
             img_dim_path = i_dim.img_dim_path(query, names_col, img_directory, dim_col)
             try:
-                pilim_dim = Image.open(StringIO((requests.get(img_dim_path)).content))
+                pilim_dim = PIL.Image.open(StringIO((requests.get(img_dim_path)).content))
             except IOError as err:
-                print err            
+                print err 
             size_dim = resize(pilim_dim, 600, 450)
             pilim_dim.thumbnail(size_dim, Image.ANTIALIAS)
             image_dim = ImageTk.PhotoImage(pilim_dim)
@@ -77,9 +83,9 @@ def refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_s
             i_schm1 = Images.Images(query, names_col, img_directory, img_col, dim_col, schm1_col, schm2_col)
             img_schm1_path = i_schm1.img_schm1_path(query, names_col, img_directory, schm1_col)
             try:
-                pilim_schm1 = Image.open(StringIO((requests.get(img_schm1_path)).content))
+                pilim_schm1 = PIL.Image.open(StringIO((requests.get(img_schm1_path)).content))
             except IOError as err:
-                print err            
+                print err  
             size_schm1 = resize(pilim_schm1, 600, 450)
             pilim_schm1.thumbnail(size_schm1, Image.ANTIALIAS)
             image_schm1 = ImageTk.PhotoImage(pilim_schm1)
@@ -90,9 +96,9 @@ def refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_s
             i_schm2 = Images.Images(query, names_col, img_directory, img_col, dim_col, schm1_col, schm2_col)
             img_schm2_path = i_schm2.img_schm2_path(query, names_col, img_directory, schm2_col)
             try:
-                pilim_schm2 = Image.open(StringIO((requests.get(img_schm2_path)).content))
+                pilim_schm2 = PIL.Image.open(StringIO((requests.get(img_schm2_path)).content))
             except IOError as err:
-                print err            
+                print err  
             size_schm2 = resize(pilim_schm2, 600, 450)
             pilim_schm2.thumbnail(size_schm2, Image.ANTIALIAS)
             image_schm2 = ImageTk.PhotoImage(pilim_schm2)

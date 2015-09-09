@@ -8,7 +8,7 @@ def show_info(info_txt):
     with open(info_txt, 'r') as f:
         information = f.read()
     info = Toplevel()
-    info.title("О программе \"Price Editor\"")
+    info.title("Справка")
     frame_info=Frame(info, width=360, height=430)
     frame_info.pack()
     text_info = Text(frame_info, height=16,width=48,font='Arial 10',wrap=WORD)
@@ -22,7 +22,3 @@ def show_info(info_txt):
     text_info.configure(state='disabled')
     close_btn = Button(frame_info, text="Закрыть", command=info.destroy)
     close_btn.place(x=160, y=400)
-    
-    
-    
-

@@ -15,6 +15,7 @@ import ImageTk
 import PIL.Image
 import requests
 from StringIO import StringIO
+# from modules.short_to_ul import *
 
 #################################################### now let's plug my own modules ####################################################
 from modules import AutocompleteEntry
@@ -38,6 +39,7 @@ from modules.back_show import *
 from modules.search import *
 from modules.page_design import *
 from modules.show_info import *
+from modules.show_man import *
 from modules.db_settings import *
 from modules.parse_db_ini import *
 from modules.show_open_db import *
@@ -49,7 +51,7 @@ from modules.local_save_all import *
 ####################################################### Inner functions definitions ###################################################
 def apply_design():
     page_design(frameZ, pages, explain_col, names_col, short_col, img_col, pdf_col, include_col, \
-        dim_col, schm1_col, schm2_col, attention_col, params_col, template_file, template_fill)
+        dim_col, schm1_col, schm2_col, attention_col, params_col, template_file, template_fill, progress_text)
 
 def OpenUrl(url):
     webbrowser.open_new(url)
@@ -83,10 +85,10 @@ def LoadFile():
     book = xlrd.open_workbook(fn, 'rt' ,formatting_info=True)
     sh = book.sheet_by_index(0)
     loading_arrs(sh, names_col, explain_col, all_cats, img_col, pdf_col, short_col, include_col, \
-                dim_col, schm1_col, schm2_col, attention_col, params_col, frame0)
+                dim_col, schm1_col, schm2_col, attention_col, params_col, frame0, progress_text)
     full_path_show(frame0, fn)
-    categories(all_cats, level_0, call_level_1, call_items0)
-    autofill_names(names_col, names_list, e)
+    categories(all_cats, level_0, call_level_1, call_items0, progress_text)
+    autofill_names(names_col, names_list, e, progress_text)
     apply_design()
     load_template()
 
@@ -138,6 +140,14 @@ def SaveFile():
         else:
             w_sheet.write(i,105,pdf_col[i],plain)
 
+    for i,cell in enumerate(sh.col(100)):
+        if not i or i<10:
+            continue
+        if type(short_col[i])==str:
+            w_sheet.write(i,100,short_col[i].decode('utf-8', errors='replace'),plain)
+        else:
+            w_sheet.write(i,100,short_col[i],plain)
+
     for i,cell in enumerate(sh.col(98)):
         if not i or i<10:
             continue
@@ -183,9 +193,30 @@ def SaveFile():
 def info():
     show_info(info_txt)
 
+def manual():
+    show_man(manual_txt)
+
+def activate_scheme():
+    try:
+        viewer.forget(view_t)
+        view_t1 = ttk.Frame(frame2)
+        viewer.add(view_t1, text ='Общий шаблон')
+        textbox_t = Text(view_t1,height=33,width=96,font='Arial 10',wrap=WORD)
+        textbox_t.pack(side='left')
+        scrollbar_t1 = Scrollbar(view_t1)
+        scrollbar_t1.pack(side=RIGHT, fill=Y)
+        scrollbar_t1['command'] = textbox_t.yview
+        textbox_t['yscrollcommand'] = scrollbar_t1.set
+        with open(template_file, 'r') as f:
+            template_text = f.read()
+            textbox_t.delete(1.0, END)
+            textbox_t.insert(END, template_text)
+    except Exception:
+        pass
+
 def db_set_window():
     db_settings(db_ini_file, cur_db_strvar, frame0)
-    
+
 def sftp_pix_replace():
     sftp_save_all(names_col, img_col, pdf_col, dim_col, schm1_col, schm2_col, \
                   vendor_col, target_root, sftp_server, sftp_user, sftp_pass, frameZ)
@@ -200,19 +231,27 @@ def OpenProg():
     global e
     global sftp_upload
     global pix_replace
-    
+    global progress_text
+    global frame2
+    global viewer
+    global textbox_t
+    global scrollbar_t1
+    global view_t
+
+    progress_text = StringVar()
+
     def entry_return(event):
         global query
         search(e, v, names_col, all_cats, full_path, frame0, img_source_entry, textbox, params_col, img_col, pdf_source_entry, pdf_col, \
             level_0, level_1, level_2, level_3, listbox, call_list_to_search, sw, call_level_1, call_items0, call_level_2, call_items1, \
             call_level_3, call_items2, call_items3, textbox_1, explain_col, attention_col, dim_col, schm1_col, schm2_col, \
-            dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture, view_d, view_s1, view_s2, frameZ)
+            dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture, view_d, view_s1, view_s2, frameZ, short_col, textbox_m)
 
     def call_list_to_search(event):
         list_to_search(event, e, names_col, img_source_entry, pdf_source_entry, all_cats, full_path, \
             frame0, v, textbox, textbox_1, params_col, img_col, pdf_col, back_show, pages, explain_col, \
             attention_col, dim_col, schm1_col, schm2_col, dim_source_entry, schm1_source_entry, \
-            schm2_source_entry, img_directory, frame_picture, view_d, view_s1, view_s2)
+            schm2_source_entry, img_directory, frame_picture, view_d, view_s1, view_s2, short_col, textbox_m)
         back_show(menu_point(event), level_0, level_1, level_2, level_3, listbox, all_cats, \
             names_col, call_list_to_search, sw, frameZ, params_col, call_level_1, call_items0, \
             call_level_2, call_items1, call_level_3, call_items2, call_items3)
@@ -299,27 +338,31 @@ def OpenProg():
         schm2_source_entry.insert(0, os.path.split(open_schm2_file)[1])
 
     def save_db():
+        db = DB_Object.DB_Object(hostname, database, db_user, db_pass)
         item_name = e.get()
         for i,item in enumerate(names_col):
             if item == item_name:
                 new_text = explain_col[i]
         db_request = "update `b_iblock_element` set `DETAIL_TEXT`='%s' where `NAME`='%s'" % (new_text, item_name)
-        db = DB_Object.DB_Object(hostname, database, db_user, db_pass)
         db.write(db_request)
-        load_template()
-        apply_design()
-        for i,item in enumerate(names_col):
-            if item == query:
-                html_show(explain_col[i])        
+        # load_template()
+        # apply_design()
+        # for i,item in enumerate(names_col):
+        #     if item == query:
+        #         html_show(explain_col[i])
 
     def save_changes():
         query = e.get()
         for i,item in enumerate(names_col):
             if item == query:
+                short_col.pop(i)
+                short_col.insert(i, textbox_m.get(1.0, 'end-1c').encode('utf-8'))
+                textbox_m.delete(1.0, END)
+                textbox_m.insert(END, short_col[i])
                 params_col.pop(i)
                 params_col.insert(i, textbox.get(1.0, 'end-1c').encode('utf-8'))
                 textbox.delete(1.0, END)
-                textbox.insert(END, params_col[i])           
+                textbox.insert(END, params_col[i])
                 attention_col.pop(i)
                 attention_col.insert(i, textbox_1.get(1.0, 'end-1c').encode('utf-8'))
                 textbox_1.delete(1.0, END)
@@ -360,7 +403,7 @@ def OpenProg():
         refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_source_entry, \
             img_col, pdf_source_entry, pdf_col, attention_col, dim_col, schm1_col, schm2_col, \
             dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture, \
-            view_d, view_s1, view_s2)
+            view_d, view_s1, view_s2, short_col, textbox_m)
 
     def save_pdf():
         global open_pdf_file
@@ -388,7 +431,7 @@ def OpenProg():
         refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_source_entry, \
             img_col, pdf_source_entry, pdf_col, attention_col, dim_col, schm1_col, schm2_col, \
             dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture, \
-            view_d, view_s1, view_s2)
+            view_d, view_s1, view_s2, short_col, textbox_m)
 
     def save_dim():
         global open_dim_file
@@ -416,7 +459,7 @@ def OpenProg():
         refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_source_entry, \
             img_col, pdf_source_entry, pdf_col, attention_col, dim_col, schm1_col, schm2_col, \
             dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture, \
-            view_d, view_s1, view_s2)
+            view_d, view_s1, view_s2, short_col, textbox_m)
 
     def save_schm1():
         global open_schm1_file
@@ -444,7 +487,7 @@ def OpenProg():
         refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_source_entry, \
             img_col, pdf_source_entry, pdf_col, attention_col, dim_col, schm1_col, schm2_col, \
             dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture, \
-            view_d, view_s1, view_s2)
+            view_d, view_s1, view_s2, short_col, textbox_m)
 
     def save_schm2():
         global open_schm2_file
@@ -472,9 +515,9 @@ def OpenProg():
         refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_source_entry, \
             img_col, pdf_source_entry, pdf_col, attention_col, dim_col, schm1_col, schm2_col, \
             dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture, \
-            view_d, view_s1, view_s2)
+            view_d, view_s1, view_s2, short_col, textbox_m)
 
-    ######################################################### GUI constraction ##################################################################
+    ######################################################### GUI construction ##################################################################
     frame0=Frame(frameZ, width=1260, heigh=770)
     frame1=Frame(frame0,width=430,heigh=640)
     frame1.place(x=10, y=35)
@@ -497,8 +540,11 @@ def OpenProg():
     viewer = ttk.Notebook(frame2)
     viewer.pack(fill="both", expand=True)
 
+    view_m = ttk.Frame(frame2)
+    viewer.add(view_m, text ='Общее описание')
+
     view_0 = ttk.Frame(frame2)
-    viewer.add(view_0, text ='Технические характеристики')
+    viewer.add(view_0, text ='Тех. хар-ки')
 
     view_s1= ttk.Frame(frame2)
     viewer.add(view_s1, text ='Схема №1 ')
@@ -507,13 +553,14 @@ def OpenProg():
     viewer.add(view_s2, text ='Схема №2 ')
 
     view_d = ttk.Frame(frame2)
-    viewer.add(view_d, text ='Габариты устройства')
+    viewer.add(view_d, text ='Габариты')
 
     view_1 = ttk.Frame(frame2)
-    viewer.add(view_1, text ='Специальное объявление')
+    viewer.add(view_1, text ='Спец. объявление')
 
     view_t = ttk.Frame(frame2)
-    viewer.add(view_t, text ='Общий шаблон')
+    viewer.add(view_t, text ='Общий шаблон', state='disable')
+    # viewer.hide(view_t)
 
     label_fill0 = Label(view_d, text="")
     label_fill0.pack()
@@ -550,6 +597,13 @@ def OpenProg():
     schm2_source_entry.place(x=139, y=502)
     schm2_btn = Button(view_s2, text="Сохранить", command=save_schm2)
     schm2_btn.place(x=620, y=500)
+
+    textbox_m = Text(view_m,height=33,width=96,font='Arial 10',wrap=WORD)
+    textbox_m.pack(side='left')
+    scrollbar_t = Scrollbar(view_m)
+    scrollbar_t.pack(side=RIGHT, fill=Y)
+    scrollbar_t['command'] = textbox_m.yview
+    textbox_m['yscrollcommand'] = scrollbar_t.set
 
     textbox = Text(view_0,height=33,width=96,font='Arial 10',wrap=WORD)
     textbox.pack(side='left')
@@ -589,8 +643,11 @@ def OpenProg():
     level_3 = Listbox(frame1, width=41, height=5, exportselection=0)
     level_3.place(x=0, y=323)
 
+    progress_text.set("Open file...")
+    label_progress_event = Label(frameZ, textvariable=progress_text)
+    label_progress_event.place(x=10, y=710)
     label_open_file = Label(frame0, text="Редактируемый файл:")
-    label_open_file.place(x=10, y=700)
+    label_open_file.place(x=10, y=680)
     label_open_item = Label(frame0, text="Редактируемая позиция:")
     label_open_item.place(x=548, y=11)
     label_img_source = Label(frame0, text="Путь к картинке товара:")
@@ -617,7 +674,7 @@ def OpenProg():
     pdf_open_button = Button(frame0, text=" Открыть  ", command=open_pdf)
     pdf_open_button.place(x=1100, y=633)
     pdf_save_button = Button(frame0, text="Сохранить", command=save_pdf)
-    pdf_save_button.place(x=1176, y=633)   
+    pdf_save_button.place(x=1176, y=633)
     db_checkbtn = Checkbutton(frame0, text="Запись в БД", variable=ask_db)
     db_checkbtn.config(fg='red')
     db_checkbtn.place(x=971, y=676)
@@ -633,14 +690,14 @@ def OpenProg():
     book = xlrd.open_workbook(fn, 'rt' ,formatting_info=True)
     sh = book.sheet_by_index(0)
     loading_arrs(sh, names_col, explain_col, all_cats, img_col, pdf_col, short_col, include_col, \
-                dim_col, schm1_col, schm2_col, attention_col, params_col, vendor_col, frameZ)
+                dim_col, schm1_col, schm2_col, attention_col, params_col, vendor_col, frameZ, progress_text)
     full_path_show(frame0, fn)
-    categories(all_cats, level_0, call_level_1, call_items0)
-    autofill_names(names_col, names_list, e)
+    categories(all_cats, level_0, call_level_1, call_items0, progress_text)
+    autofill_names(names_col, names_list, e, progress_text)
     page_design(frameZ, pages, explain_col, names_col, short_col, img_col, pdf_col, include_col, \
-        dim_col, schm1_col, schm2_col, attention_col, params_col, template_file, template_fill)
+        dim_col, schm1_col, schm2_col, attention_col, params_col, template_file, template_fill, progress_text)
     load_template()
-
+    progress_text.set("")
     frame0.pack()
 
 if __name__ == '__main__':
@@ -666,6 +723,7 @@ if __name__ == '__main__':
     img_directory  = 'http://poligon.info/images/'
     wall_pic       = 'priceditor_logo.jpg' # pic must have dimentions 1255 x 770 pixels
     info_txt       = 'info.txt'
+    manual_txt     = 'manual.txt'
     query          = ''
     sftp_server    = '89.253.227.59'
     sftp_user      = 'poligon'
@@ -698,7 +756,7 @@ if __name__ == '__main__':
     cur_db_strvar.set(cur_db_var)
 
     root.resizable(0,0)
-    root.title("Price Editor 1.7 alpha")
+    root.title("PriceEditor 1.8")
     frameZ=Frame(root, width=1258, heigh=770)
     frameZ.pack()
     frame0=Frame(frameZ, width=1260, heigh=770)
@@ -724,8 +782,9 @@ if __name__ == '__main__':
     menubar.add_cascade(label="Опции", menu=optmenu)
     optmenu.add_command(label="Скрывать незаполненные позиции", command=unplug_red_from_menu)
     optmenu.add_command(label="Обновить дизайн всех элементов", command=apply_design)
-    #optmenu.add_command(label="Переместить по новому пути картинки и PDF (удалённо)", command=sftp_pix_replace)
-    optmenu.add_command(label="Переместить по новому пути картинки и PDF (локально)", command=local_pix_replace)
+    optmenu.add_command(label="Активировать вкладку \"Общий шаблон\"", command=activate_scheme)
+    # optmenu.add_command(label="Переместить по новому пути картинки и PDF (удалённо)", command=sftp_pix_replace)
+    # optmenu.add_command(label="Переместить по новому пути картинки и PDF (локально)", command=local_pix_replace)
 
     settings_menu = Menu(menubar, tearoff=0)
     menubar.add_cascade(label="Настройки", menu=settings_menu)
@@ -733,6 +792,7 @@ if __name__ == '__main__':
 
     about_menu = Menu(menubar, tearoff=0)
     menubar.add_cascade(label="Справка", menu=about_menu)
+    about_menu.add_command(label="Руководство пользователя", command=manual)
     about_menu.add_command(label="О программе", command=info)
 
     # display the menu

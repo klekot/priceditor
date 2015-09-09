@@ -7,7 +7,7 @@ from modules.refresh import *
 def list_to_search(event, e, names_col, img_source_entry, pdf_source_entry, all_cats, full_path, \
     frame0, v, textbox, textbox_1, params_col, img_col, pdf_col, back_show, pages, explain_col, \
     attention_col, dim_col, schm1_col, schm2_col, dim_source_entry, schm1_source_entry, \
-    schm2_source_entry, img_directory, frame_picture, view_d, view_s1, view_s2):
+    schm2_source_entry, img_directory, frame_picture, view_d, view_s1, view_s2, short_col, textbox_m):
     global query
     widget = event.widget
     selection=widget.curselection()
@@ -18,5 +18,5 @@ def list_to_search(event, e, names_col, img_source_entry, pdf_source_entry, all_
     refresh(query, names_col, textbox, textbox_1, params_col, explain_col, img_source_entry, \
             img_col, pdf_source_entry, pdf_col, attention_col, dim_col, schm1_col, schm2_col, \
             dim_source_entry, schm1_source_entry, schm2_source_entry, img_directory, frame_picture, \
-            view_d, view_s1, view_s2)         
+            view_d, view_s1, view_s2, short_col, textbox_m)         
     show_open_item(v, query, frame0)

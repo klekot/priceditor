@@ -26,4 +26,4 @@ def item_path_show(menu_point, all_cats, names_col, full_path, frame0):
                         all_cats[3][i].encode('utf-8', errors='replace') + "  >  " + \
                         names_col[i].encode('utf-8', errors='replace'))
     open_item_path = Label(frame0, textvariable=full_path, fg="red", font=("Helvetica", 10))
-    open_item_path.place(x=10, y=672)
+    open_item_path.place(x=10, y=658)

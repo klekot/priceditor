@@ -1,11 +1,13 @@
 import xlrd
 import ttk
+from Tkinter import *
 
 def loading_arrs(sh, names_col, explain_col, all_cats, img_col, pdf_col, short_col, \
-                include_col, dim_col, schm1_col, schm2_col, attention_col, params_col, vendor_col, frameZ):
+                include_col, dim_col, schm1_col, schm2_col, attention_col, params_col, vendor_col, frameZ, progress_text):
     progress = ttk.Progressbar(frameZ, length=1235, maximum=sh.nrows)
     progress.place(x=10, y=740)
     for i in range(sh.nrows):
+        progress_text.set("Parsing xls...")
         progress.step(1)
         frameZ.update()
         names_col.append(sh.cell_value(rowx=i, colx=5))
@@ -17,7 +19,7 @@ def loading_arrs(sh, names_col, explain_col, all_cats, img_col, pdf_col, short_c
         all_cats[4].append(sh.cell_value(rowx=i, colx=110))
         img_col.append(sh.cell_value(rowx=i, colx=104))
         pdf_col.append(sh.cell_value(rowx=i, colx=105))
-        short_col.append(sh.cell_value(rowx=i, colx=7))
+        short_col.append(sh.cell_value(rowx=i, colx=100))
         include_col.append(sh.cell_value(rowx=i, colx=0))
         dim_col.append(sh.cell_value(rowx=i, colx=118))
         schm1_col.append(sh.cell_value(rowx=i, colx=114))

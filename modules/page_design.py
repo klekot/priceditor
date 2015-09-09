@@ -61,7 +61,7 @@ def template_fill(template_file, params, name, img, pdf, dim, schm1, schm2, shor
 	return "".join(new_lines)
 
 def page_design(frameZ, pages, explain_col, names_col, short_col, img_col, pdf_col, include_col, \
-				dim_col, schm1_col, schm2_col, attention_col, params_col, template_file, template_fill):
+				dim_col, schm1_col, schm2_col, attention_col, params_col, template_file, template_fill, progress_text):
 	reload(sys)  
 	sys.setdefaultencoding('utf8')
 	pages =  []
@@ -69,6 +69,7 @@ def page_design(frameZ, pages, explain_col, names_col, short_col, img_col, pdf_c
 	progress = ttk.Progressbar(frameZ, length=1235, maximum=len(params_col))
 	progress.place(x=10, y=740)
 	for i, item in enumerate(params_col):
+	        progress_text.set("Applying pages design...")
 	        progress.step(1)
 	        frameZ.update()
 		params = encol(item)
@@ -85,6 +86,7 @@ def page_design(frameZ, pages, explain_col, names_col, short_col, img_col, pdf_c
 	progress = ttk.Progressbar(frameZ, length=1235, maximum=len(explain_col))
 	progress.place(x=10, y=740)
 	for i, item in enumerate(explain_col):
+	        progress_text.set("Checking correct encoding...")
 	        progress.step(1)
 	        frameZ.update()
 		if (type(item) == int) or (type(item) == float):
@@ -108,3 +110,4 @@ def page_design(frameZ, pages, explain_col, names_col, short_col, img_col, pdf_c
 		elif bad_line in explain:
 			explain_col.pop(i)
 			explain_col.insert(i, pages[i])
+	progress_text.set("")

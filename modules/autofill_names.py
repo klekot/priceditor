@@ -1,7 +1,8 @@
 from codecs import *
 
-def autofill_names(names_col, names_list, e):
+def autofill_names(names_col, names_list, e, progress_text):
     for i in range(len(names_col)):
+    	progress_text.set("Building names list...")
         if names_col[i]!='':
             if isinstance(names_col[i], float):
                 names_col[i]=int(names_col[i])
